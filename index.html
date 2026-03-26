@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StyleFlow Global - Luxury SaaS Directory</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { 400: '#F4D03F', 500: '#D4AF37', 600: '#CA8A04' },
+                        dark: { 900: '#050505', 800: '#121212', 700: '#18181A' }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: white; overflow-x: hidden; }
+        .mesh-1 { position: fixed; top: -10%; left: -10%; width: 500px; height: 500px; background: rgba(88, 28, 135, 0.4); border-radius: 50%; filter: blur(140px); mix-blend-mode: screen; animation: pulse 6s infinite alternate; pointer-events: none; z-index: 0; }
+        .mesh-2 { position: fixed; top: 20%; right: -10%; width: 600px; height: 600px; background: rgba(212, 175, 55, 0.15); border-radius: 50%; filter: blur(150px); mix-blend-mode: screen; pointer-events: none; z-index: 0;}
+        .mesh-3 { position: fixed; bottom: -20%; left: 10%; width: 400px; height: 400px; background: rgba(49, 46, 129, 0.3); border-radius: 50%; filter: blur(130px); mix-blend-mode: screen; pointer-events: none; z-index: 0;}
+        @keyframes pulse { 0% { opacity: 0.5; } 100% { opacity: 0.8; } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        select option { background-color: #121212; color: #fff; }
+    </style>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="antialiased selection:bg-[#D4AF37] selection:text-[#050505]">
+    <div class="mesh-1"></div>
+    <div class="mesh-2"></div>
+    <div class="mesh-3"></div>
+
+    <div id="root" class="relative z-10 min-h-screen flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { createRoot } = ReactDOM;
+        const { motion, AnimatePresence } = window.Motion;
+
+        // Custom Native Icons
+        const IconBase = ({ d, c, cx, cy, r, poly, line, className, strokeWidth = "2" }) => (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+            {d && (Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />)}
+            {c && (Array.isArray(c) ? c.map((circ, i) => <circle key={'c'+i} cx={circ.cx} cy={circ.cy} r={circ.r} />) : <circle cx={cx} cy={cy} r={r} />)}
+            {poly && <polygon points={poly} />}
+            {line && (Array.isArray(line) ? line.map((l, i) => <line key={'l'+i} x1={l.x1} x2={l.x2} y1={l.y1} y2={l.y2} />) : (line && <line x1={line.x1} x2={line.x2} y1={line.y1} y2={line.y2} />))}
+          </svg>
+        );
+
+        const Sparkles = (p) => <IconBase {...p} d={["M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z", "M20 3v4", "M22 5h-4", "M4 17v2", "M5 18H3"]} />;
+        const Scissors = (p) => <IconBase {...p} c={[{cx:"6", cy:"6", r:"3"}, {cx:"6", cy:"18", r:"3"}]} line={[{x1:"20", x2:"8.12", y1:"4", y2:"15.88"}, {x1:"14.47", x2:"20", y1:"14.48", y2:"20"}, {x1:"8.12", x2:"12", y1:"8.12", y2:"12"}]} />;
+        const Brush = (p) => <IconBase {...p} d={["m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08", "M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"]} />;
+        const UserCircle = (p) => <IconBase {...p} d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" c={[{cx: "12", cy: "12", r: "10"}, {cx: "12", cy: "10", r: "3"}]} />;
+        const StarFilled = (p) => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+        const MapPin = (p) => <IconBase {...p} d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" cx="12" cy="10" r="3" />;
+        const HomeIcon = (p) => <IconBase {...p} d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" poly="9 22 9 12 15 12 15 22" />;
+        const Building2 = (p) => <IconBase {...p} d={["M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z", "M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2", "M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2", "M10 6h4", "M10 10h4", "M10 14h4", "M10 18h4"]} />;
+        const Loader2 = (p) => <IconBase {...p} d="M21 12a9 9 0 1 1-6.219-8.56" />;
+        const Check = (p) => <IconBase {...p} d="M20 6 9 17l-5-5" />;
+        const ArrowRight = (p) => <IconBase {...p} d={["M5 12h14", "m12 5 7 7-7 7"]} />;
+        const ArrowLeft = (p) => <IconBase {...p} d={["m12 19-7-7 7-7", "M19 12H5"]} />;
+        const XIcon = (p) => <IconBase {...p} d={["M18 6 6 18", "m6 6 12 12"]} />;
+        const DollarSign = (p) => <IconBase {...p} d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" line={{x1:"12", x2:"12", y1:"2", y2:"22"}} />;
+
+        // Database & Localization State
+        const CATEGORIES = [
+          { name: 'Haircut', icon: <Scissors className="w-4 h-4"/> },
+          { name: 'Beard', icon: <UserCircle className="w-4 h-4"/> },
+          { name: 'Spa', icon: <Sparkles className="w-4 h-4"/> },
+          { name: 'Makeup', icon: <Brush className="w-4 h-4"/> }
+        ];
+
+        const SALONS = [
+          { id: 1, name: "The Royal Scissors", rating: 4.9, reviews: 124, address: "124 Elite Avenue, Downtown", distance: "1.2 km", image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop" },
+          { id: 2, name: "Golden Comb Excellence", rating: 4.8, reviews: 89, address: "89 Prestige Boulevard", distance: "2.5 km", image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=800&auto=format&fit=crop" },
+          { id: 3, name: "Luxe Spa & Salon", rating: 4.7, reviews: 201, address: "45 Sunset Drive", distance: "3.0 km", image: "https://images.unsplash.com/photo-1521590832167-7bfcfaa6362f?q=80&w=800&auto=format&fit=crop" }
+        ];
+
+        const SERVICES = ["Signature Haircut & Styling", "Luxury Color & Highlights", "Keratin Smoothing Treatment", "Bridal Hair & Makeup", "Scalp Revival Spa"];
+
+        const COUNTRY_CODES = [
+            { code: '+1', flag: '🇺🇸', name: 'US' },
+            { code: '+44', flag: '🇬🇧', name: 'UK' },
+            { code: '+91', flag: '🇮🇳', name: 'IN' },
+            { code: '+971', flag: '🇦🇪', name: 'AE' },
+        ];
+
+        const LANGUAGES = [
+          { code: 'en', label: 'EN', full: 'English', flag: '🇺🇸' },
+          { code: 'hi', label: 'HI', full: 'Hindi', flag: '🇮🇳' },
+          { code: 'es', label: 'ES', full: 'Spanish', flag: '🇪🇸' },
+          { code: 'fr', label: 'FR', full: 'French', flag: '🇫🇷' },
+        ];
+        const CURRENCIES = [
+          { code: 'USD', symbol: '$' },
+          { code: 'INR', symbol: '₹' },
+          { code: 'EUR', symbol: '€' },
+        ];
+
+        const DICT = {
+          en: {
+            heroTitle: "The Future of Beauty <br/><span class='bg-gradient-to-r from-[#D4AF37] to-[#F4D03F] bg-clip-text text-transparent'>Starts Here.</span>",
+            heroSub: "Experience the world's most advanced AI-driven salon platform. Elevated experiences for owners and clients worldwide.",
+            findSalon: "Find a Salon",
+            pricing: "Pricing",
+            registerSalon: "Register Your Salon",
+            featuredSalons: "Featured Salons",
+            viewAll: "View all",
+            bookNow: "Book Now",
+            step1Title: "Step 1: Reservation Details",
+            step2Title: "Step 2: Guest Information",
+            selectService: "Select Service",
+            fullName: "Full Name",
+            phone: "Phone Number",
+            nextStep: "Continue",
+            confirmBooking: "Confirm Booking",
+            successBooking: "Luxury is on its way! Check your WhatsApp,",
+            returnBtn: "Return to Directory",
+            ownerName: "Owner Full Name",
+            salonName: "Salon Name",
+            registerPartner: "Partner with StyleFlow",
+            partnerSub: "List your salon on the global marketplace.",
+            successPartner: "Welcome aboard! The StyleFlow Partner team will contact you shortly.",
+            processing: "Processing Luxury Request..."
+          }
+        };
+
+        function App() {
+          const [langCode, setLangCode] = useState('en');
+          const [currencyCode, setCurrencyCode] = useState('USD');
+          const [langOpen, setLangOpen] = useState(false);
+          const [currOpen, setCurrOpen] = useState(false);
+
+          const [activeCategory, setActiveCategory] = useState('Haircut');
+          const [bookingSalon, setBookingSalon] = useState(null); 
+          const [showPartner, setShowPartner] = useState(false);  
+          
+          const [step, setStep] = useState(1);
+          const [formData, setFormData] = useState({ name: '', phone: '', dialCode: '+1', service: SERVICES[0], salon_name: '', owner: '' });
+          const [isSubmitting, setIsSubmitting] = useState(false);
+          const [submittedFlow, setSubmittedFlow] = useState(false);
+
+          const t = DICT['en']; // Expansion easily maps to DICT[langCode]
+          const activeLang = LANGUAGES.find(l => l.code === langCode) || LANGUAGES[0];
+          const activeCurr = CURRENCIES.find(c => c.code === currencyCode) || CURRENCIES[0];
+
+          useEffect(() => {
+            if (!bookingSalon && !showPartner) {
+              setStep(1);
+              setSubmittedFlow(false);
+              setFormData({ name: '', phone: '', dialCode: '+1', service: SERVICES[0], salon_name: '', owner: '' });
+            }
+          }, [bookingSalon, showPartner]);
+
+          const handleBookingSubmit = async (e) => {
+            e.preventDefault();
+            if (step === 1) return setStep(2);
+            setIsSubmitting(true);
+            try {
+              await fetch('https://styleflow.app.n8n.cloud/webhook/global-booking', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: formData.name, phone: `${formData.dialCode}${formData.phone}`, service: formData.service, location: bookingSalon.name, language: activeLang.full, currency: activeCurr.code }),
+              });
+              setSubmittedFlow('booking');
+            } catch { alert("Network Error"); }
+            setIsSubmitting(false);
+          };
+
+          const handlePartnerSubmit = async (e) => {
+            e.preventDefault();
+            setIsSubmitting(true);
+            try {
+              await fetch('https://styleflow.app.n8n.cloud/webhook/salon-registration', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ salon_name: formData.salon_name, owner: formData.owner, phone: `${formData.dialCode}${formData.phone}`, language: activeLang.full, currency: activeCurr.code }),
+              });
+              setSubmittedFlow('partner');
+            } catch { alert("Network Error"); }
+            setIsSubmitting(false);
+          };
+
+          const CustomDialer = () => (
+             <div className="flex bg-[#121212]/70 border border-white/5 h-12 rounded-xl focus-within:ring-1 focus-within:ring-[#D4AF37] overflow-hidden">
+                <div className="relative border-r border-white/10 w-24 flex bg-[#121212]">
+                    <select value={formData.dialCode} onChange={(e) => setFormData({...formData, dialCode: e.target.value})} className="w-full h-full bg-transparent text-white appearance-none outline-none pl-3 cursor-pointer z-10">
+                      {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
+                    </select>
+                </div>
+                <input type="tel" required placeholder={t.phone} value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="flex-1 bg-transparent px-4 text-white outline-none" />
+             </div>
+          );
+
+          return (
+            <div className="flex-1 flex flex-col w-full text-white relative">
+              
+              {/* Toggles Logic merged perfectly atop Directory */}
+              <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+                <div className="relative pointer-events-auto">
+                  <button onClick={() => { setCurrOpen(!currOpen); setLangOpen(false); }} className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#121212]/80 backdrop-blur-md border border-white/10 rounded-full hover:bg-white/5 transition-colors shadow-xl">
+                    <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+                    <span className="text-xs sm:text-sm font-medium">{activeCurr.code}</span>
+                  </button>
+                  <AnimatePresence>
+                    {currOpen && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute right-0 mt-3 w-32 bg-[#121212] border border-white/10 rounded-xl shadow-2xl py-2 flex flex-col z-50">
+                        {CURRENCIES.map(curr => <button key={curr.code} onClick={() => { setCurrencyCode(curr.code); setCurrOpen(false); }} className={`px-4 py-2 text-left text-sm flex gap-3 transition-colors ${curr.code === activeCurr.code ? 'text-[#D4AF37] bg-white/5' : 'hover:bg-white/5 text-gray-300'}`}><span className="w-4 font-serif">{curr.symbol}</span> {curr.code}</button>)}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <div className="relative pointer-events-auto">
+                  <button onClick={() => { setLangOpen(!langOpen); setCurrOpen(false); }} className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#121212]/80 backdrop-blur-md border border-white/10 rounded-full hover:bg-white/5 transition-colors shadow-xl">
+                    <span className="text-base sm:text-lg leading-none">{activeLang.flag}</span>
+                    <span className="text-xs sm:text-sm font-medium hidden sm:block">{activeLang.label}</span>
+                  </button>
+                  <AnimatePresence>
+                    {langOpen && (
+                      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute right-0 mt-3 w-40 bg-[#121212] border border-white/10 rounded-xl shadow-2xl py-2 flex flex-col z-50">
+                        {LANGUAGES.map(lang => <button key={lang.code} onClick={() => { setLangCode(lang.code); setLangOpen(false); }} className={`px-4 py-2 text-left text-sm flex items-center gap-3 transition-colors ${langCode === lang.code ? 'text-[#D4AF37] bg-white/5' : 'hover:bg-white/5 text-gray-300'}`}><span className="text-lg leading-none">{lang.flag}</span> {lang.full}</button>)}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Directory Dashboard View */}
+              <div className={`flex-1 transition-opacity duration-300 ${(bookingSalon || showPartner) ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
+                
+                <header className="border-b border-white/5 sticky top-0 bg-[#050505]/80 backdrop-blur-xl z-30">
+                  <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-[#D4AF37] flex items-center justify-center text-[#050505]">
+                            <Scissors className="w-5 h-5" strokeWidth="2.5" />
+                        </div>
+                        <span className="font-serif italic font-bold tracking-widest text-white text-xl">StyleFlow</span>
+                    </div>
+                    <div className="hidden md:flex items-center gap-8 mr-40">
+                        <button className="text-sm font-medium text-[#D4AF37] opacity-80 hover:opacity-100 transition">{t.findSalon}</button>
+                        <button className="text-sm font-medium text-white opacity-60 hover:opacity-100 transition">{t.pricing}</button>
+                        <div className="w-[1px] h-6 bg-white/10 mx-2"></div>
+                        <button onClick={() => setShowPartner(true)} className="px-6 py-2.5 rounded-full border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/5 transition-all text-sm font-medium tracking-wide">
+                            {t.registerSalon}
+                        </button>
+                    </div>
+                  </div>
+                </header>
+
+                <main className="max-w-7xl mx-auto px-6 py-12 pb-32 sm:pb-16 flex flex-col items-center sm:items-stretch">
+                  
+                  {/* The Original SaaS Hero Text integrated into the Directory Header */}
+                  <div className="text-center max-w-2xl mx-auto mb-16">
+                    <h1 className="text-4xl sm:text-6xl font-serif mb-6 leading-tight" dangerouslySetInnerHTML={{ __html: t.heroTitle }} />
+                    <p className="text-gray-400 text-sm sm:text-lg font-light">{t.heroSub}</p>
+                  </div>
+
+                  <div className="flex items-center gap-4 overflow-x-auto hide-scrollbar pb-2 mb-10 w-full">
+                    {CATEGORIES.map(cat => {
+                        const active = activeCategory === cat.name;
+                        return (
+                            <button key={cat.name} onClick={() => setActiveCategory(cat.name)} className={`flex items-center gap-2 px-6 py-3 rounded-full transition-all shrink-0 border ${active ? 'border-[#D4AF37]/40 bg-[#1A1913] text-[#D4AF37]' : 'border-white/5 bg-[#121212] hover:bg-[#18181A] text-gray-400'}`}>
+                                {cat.icon}
+                                <span className={`text-sm font-medium tracking-wide ${active ? 'text-[#D4AF37]' : 'text-gray-300'}`}>{cat.name}</span>
+                            </button>
+                        )
+                    })}
+                  </div>
+
+                  <div className="flex items-end justify-between mb-8 w-full">
+                    <h2 className="text-2xl sm:text-3xl font-serif">{t.featuredSalons}</h2>
+                    <button className="flex items-center gap-1.5 text-sm text-[#D4AF37] hover:underline font-medium">{t.viewAll} <ArrowRight className="w-4 h-4"/></button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                    {SALONS.map(salon => (
+                        <div key={salon.id} className="bg-[#121212] rounded-2xl overflow-hidden border border-white/5 group hover:border-[#D4AF37]/20 transition-all flex flex-col h-[420px]">
+                            <div className="relative h-48 w-full overflow-hidden shrink-0">
+                                <motion.img whileHover={{ scale: 1.05 }} src={salon.image} className="w-full h-full object-cover origin-center" alt={salon.name} />
+                                <div className="absolute top-4 right-4 bg-[#050505]/80 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 flex items-center gap-1.5 shadow-lg">
+                                    <StarFilled className="w-3.5 h-3.5 text-[#D4AF37]" />
+                                    <span className="text-xs font-semibold text-white">{salon.rating}</span>
+                                    <span className="text-[10px] text-gray-400">({salon.reviews})</span>
+                                </div>
+                            </div>
+                            <div className="p-6 flex flex-col flex-1">
+                                <h3 className="text-2xl font-serif text-[#D4AF37] mb-3">{salon.name}</h3>
+                                <div className="flex items-center gap-2 text-gray-400 mb-auto">
+                                    <MapPin className="w-4 h-4 shrink-0 text-[#D4AF37]/70" />
+                                    <p className="text-sm truncate font-medium">{salon.address} • <span className="text-white">{salon.distance}</span></p>
+                                </div>
+                                <button onClick={() => setBookingSalon(salon)} className="mt-6 w-full h-12 rounded-xl border border-white/10 hover:border-[#D4AF37]/50 hover:bg-[#1A1913] text-white font-medium transition-all active:scale-[0.98]">
+                                    {t.bookNow}
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                  </div>
+                </main>
+
+                {/* Mobile Bottom Nav */}
+                <div className="md:hidden fixed bottom-0 inset-x-0 h-[72px] bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/5 z-40 flex items-center justify-around px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                    <button className="flex flex-col items-center justify-center gap-1.5 w-16 text-[#D4AF37]">
+                        <HomeIcon className="w-5 h-5" strokeWidth="2" />
+                        <span className="text-[10px] font-medium tracking-wide">Home</span>
+                    </button>
+                    <button onClick={() => alert("Navigate to Map")} className="flex flex-col items-center justify-center gap-1.5 w-16 text-gray-500 hover:text-gray-300">
+                        <MapPin className="w-5 h-5" strokeWidth="2" />
+                        <span className="text-[10px] font-medium tracking-wide">Explore</span>
+                    </button>
+                    <button onClick={() => setShowPartner(true)} className="flex flex-col items-center justify-center gap-1.5 w-16 text-gray-500 hover:text-gray-300">
+                        <Building2 className="w-5 h-5" strokeWidth="2" />
+                        <span className="text-[10px] font-medium tracking-wide">Partner</span>
+                    </button>
+                </div>
+              </div>
+
+              {/* Original Multi-Step Booking Logic Integrated */}
+              <AnimatePresence>
+                {bookingSalon && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#050505]/60 backdrop-blur-sm" onClick={() => setBookingSalon(null)} />
+                    <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="bg-[#121212] border border-white/10 rounded-3xl w-full max-w-md px-6 py-8 sm:p-8 relative z-10 shadow-2xl overflow-hidden min-h-[420px] flex flex-col">
+                        <button onClick={() => setBookingSalon(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-400 hover:text-white transition z-20"><XIcon className="w-4 h-4"/></button>
+                        
+                        {submittedFlow === 'booking' ? (
+                            <div className="text-center py-6 h-full flex flex-col justify-center">
+                                <div className="w-16 h-16 rounded-full bg-[#1A1913] mx-auto flex items-center justify-center mb-6 border border-[#D4AF37]/30">
+                                    <Check className="w-8 h-8 text-[#D4AF37]" strokeWidth="2.5" />
+                                </div>
+                                <h3 className="text-2xl font-serif mb-2 text-white">Confirmed</h3>
+                                <p className="text-gray-400 mb-8">{t.successBooking} <span className="text-[#D4AF37]">{formData.name}</span>.</p>
+                                <button onClick={() => setBookingSalon(null)} className="mt-auto w-full h-12 bg-white/5 hover:bg-white/10 rounded-xl font-medium transition-colors">{t.returnBtn}</button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleBookingSubmit} className="flex flex-col flex-1">
+                                <div className="flex items-center gap-1 mb-6">
+                                    <div className={`w-8 h-1 rounded-full ${step >= 1 ? 'bg-[#D4AF37]' : 'bg-white/20'}`} />
+                                    <div className={`w-8 h-1 rounded-full ${step >= 2 ? 'bg-[#D4AF37]' : 'bg-white/20'}`} />
+                                </div>
+                                
+                                <h2 className="text-2xl font-serif mb-2">{step === 1 ? t.step1Title : t.step2Title}</h2>
+                                <p className="text-sm text-[#D4AF37] mb-8">{bookingSalon.name}</p>
+                                
+                                <div className="flex-1 relative overflow-hidden">
+                                  <AnimatePresence mode="wait">
+                                    {step === 1 && (
+                                      <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }} className="space-y-4">
+                                          <div className="space-y-1 relative z-10">
+                                              <label className="text-[10px] uppercase tracking-widest text-gray-400 pl-1">{t.selectService}</label>
+                                              <select required value={formData.service} onChange={(e) => setFormData({...formData, service: e.target.value})} className="w-full bg-[#18181A] border border-white/5 h-12 rounded-xl px-4 text-white appearance-none focus:ring-1 focus:ring-[#D4AF37] outline-none">
+                                                {SERVICES.map(svc => <option key={svc} value={svc}>{svc}</option>)}
+                                              </select>
+                                          </div>
+                                      </motion.div>
+                                    )}
+                                    {step === 2 && (
+                                      <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }} className="space-y-4">
+                                          <div className="space-y-1">
+                                              <label className="text-[10px] uppercase tracking-widest text-gray-400 pl-1">{t.fullName}</label>
+                                              <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full bg-[#18181A] border border-white/5 h-12 rounded-xl px-4 text-white focus:ring-1 focus:ring-[#D4AF37] outline-none" />
+                                          </div>
+                                          <div className="space-y-1 relative z-20">
+                                              <label className="text-[10px] uppercase tracking-widest text-gray-400 pl-1">{t.phone}</label>
+                                              <CustomDialer />
+                                          </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+
+                                <div className="pt-6 flex gap-3 mt-auto">
+                                  {step === 2 && (
+                                      <button type="button" onClick={() => setStep(1)} className="h-12 w-14 border border-white/10 hover:bg-white/5 flex items-center justify-center rounded-xl transition-all shrink-0">
+                                        <ArrowLeft className="w-5 h-5 text-gray-400" />
+                                      </button>
+                                  )}
+                                  <button type="submit" disabled={isSubmitting || (step === 2 && (!formData.phone || !formData.name))} className="flex-1 h-12 bg-gradient-to-r from-[#D4AF37] to-[#F4D03F] hover:opacity-90 text-[#050505] font-bold tracking-widest uppercase transition-all rounded-xl shadow-[0_0_15px_rgba(212,175,55,0.2)] disabled:opacity-50 flex items-center justify-center">
+                                      {step === 1 ? t.nextStep : t.confirmBooking}
+                                  </button>
+                                </div>
+                            </form>
+                        )}
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* Partner Modal */}
+              <AnimatePresence>
+                {showPartner && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-[#050505]/60 backdrop-blur-sm" onClick={() => setShowPartner(false)} />
+                    <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl w-full max-w-md p-8 relative z-10 shadow-2xl">
+                        <button onClick={() => setShowPartner(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-400 hover:text-white transition"><XIcon className="w-4 h-4"/></button>
+                        
+                        {submittedFlow === 'partner' ? (
+                            <div className="text-center py-6">
+                                <div className="w-16 h-16 rounded-full bg-[#1A1913] mx-auto flex items-center justify-center mb-6 border border-[#D4AF37]/30">
+                                    <Building2 className="w-8 h-8 text-[#D4AF37]" />
+                                </div>
+                                <h3 className="text-2xl font-serif mb-2">Application Received</h3>
+                                <p className="text-gray-400 mb-8">{t.successPartner}</p>
+                                <button onClick={() => setShowPartner(false)} className="w-full h-12 bg-[#D4AF37] hover:bg-[#F4D03F] text-[#050505] rounded-xl font-medium transition-colors">Close</button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handlePartnerSubmit} className="flex flex-col">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Sparkles className="w-5 h-5 text-[#D4AF37]" />
+                                    <h2 className="text-2xl font-serif">{t.registerPartner}</h2>
+                                </div>
+                                <p className="text-sm text-gray-400 mb-8">{t.partnerSub}</p>
+                                
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase tracking-widest text-gray-400 pl-1">{t.salonName}</label>
+                                        <input type="text" required value={formData.salon_name} onChange={(e) => setFormData({...formData, salon_name: e.target.value})} className="w-full bg-[#18181A] border border-white/5 h-12 rounded-xl px-4 text-white focus:ring-1 focus:ring-[#D4AF37] outline-none" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase tracking-widest text-gray-400 pl-1">{t.ownerName}</label>
+                                        <input type="text" required value={formData.owner} onChange={(e) => setFormData({...formData, owner: e.target.value})} className="w-full bg-[#18181A] border border-white/5 h-12 rounded-xl px-4 text-white focus:ring-1 focus:ring-[#D4AF37] outline-none" />
+                                    </div>
+                                    <div className="space-y-1 relative z-20">
+                                        <label className="text-[10px] uppercase tracking-widest text-gray-400 pl-1">{t.phone}</label>
+                                        <CustomDialer />
+                                    </div>
+                                </div>
+
+                                <button type="submit" disabled={isSubmitting || !formData.phone || !formData.salon_name} className="mt-8 w-full h-12 outline outline-1 outline-[#D4AF37] text-[#D4AF37] hover:bg-[#1A1913] font-bold tracking-widest uppercase transition-all rounded-xl disabled:opacity-50 flex items-center justify-center">
+                                    Submit
+                                </button>
+                            </form>
+                        )}
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* Global Screen Loader */}
+              {isSubmitting && (
+                <div className="fixed inset-0 z-[200] bg-[#050505]/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                   <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, ease: "linear", duration: 1 }}>
+                     <Loader2 className="w-12 h-12 text-[#D4AF37]" />
+                   </motion.div>
+                   <p className="text-[#D4AF37] mt-6 tracking-widest uppercase text-xs font-semibold">{t.processing}</p>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
